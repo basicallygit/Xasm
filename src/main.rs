@@ -164,6 +164,11 @@ impl RunTime {
             "JLE" => self.jle(&first_arg),
             "JZ" => self.jz(&first_arg),
             "JNZ" => self.jnz(&first_arg),
+            "SETG" => self.setg(&first_arg),
+            "SETGE" => self.setge(&first_arg),
+            "SETL" => self.setl(&first_arg),
+            "SETLE" => self.setle(&first_arg),
+            "XOR" => self.xor(&first_arg, &split[2].to_string()),
             "LOOP" => self.loop_(&first_arg),
 
             _ => println!("Unknown command: {}", split[0]),
@@ -700,6 +705,61 @@ impl RunTime {
         }
     }
 
+    fn xor(&mut self, reg: &String, data: &String) {
+        if !self.is_register(reg) {
+            eprintln!("[xor] Attempted to xor non-existant register: {}", reg);
+            process::exit(1);
+        }
+
+        if self.is_register(data) {
+            let reg_data = self.registers.get(reg).unwrap();
+            let data_data = self.registers.get(data).unwrap();
+            match reg_data {
+                Data::Int(i) => {
+                    match data_data {
+                        Data::Int(j) => {
+                            self.zero_flag = *i ^ j == 0;
+                            self.registers.insert(reg.to_string(), Data::Int(i ^ j));
+                        },
+                        _ => {
+                            eprintln!("[xor] Attempted to xor non-integer data from register: {}", reg);
+                            process::exit(1);
+                        }
+                    };
+                }
+
+                _ => {
+                    eprintln!("[xor] Attempted to xor from non-numeric register: {}", reg);
+                    process::exit(1);
+                }
+            }
+        }
+
+        else {
+            let reg_data = self.registers.get(reg).unwrap();
+            let data_data = self.determine_type(data);
+            match reg_data {
+                Data::Int(i) => {
+                    match data_data {
+                        Data::Int(j) => {
+                            self.zero_flag = *i ^ j == 0;
+                            self.registers.insert(reg.to_string(), Data::Int(i ^ j));
+                        },
+                        _ => {
+                            eprintln!("[xor] Attempted to xor non-integer data from register: {}", reg);
+                            process::exit(1);
+                        }
+                    };
+                }
+
+                _ => {
+                    eprintln!("[xor] Attempted to xor from non-numeric register: {}", reg);
+                    process::exit(1);
+                }
+            }
+        }
+    }
+
     fn cmp(&mut self, reg: &String, data: &String) {
         if !self.is_register(reg) {
             eprintln!("[cmp] Attempted to compare non-existant register: {}", reg);
@@ -905,6 +965,42 @@ impl RunTime {
     fn jnz(&mut self, label: &String) {
         if !self.zero_flag {
             self.jmp(label);
+        }
+    }
+
+    fn setg(&mut self, reg: &String) {
+        if self.greater_flag {
+            self.registers.insert(reg.to_string(), Data::Bool(true));
+        }
+        else {
+            self.registers.insert(reg.to_string(), Data::Bool(false));
+        }
+    }
+
+    fn setge(&mut self, reg: &String) {
+        if self.greater_flag || self.equal_flag {
+            self.registers.insert(reg.to_string(), Data::Bool(true));
+        }
+        else {
+            self.registers.insert(reg.to_string(), Data::Bool(false));
+        }
+    }
+
+    fn setl(&mut self, reg: &String) {
+        if self.lesser_flag {
+            self.registers.insert(reg.to_string(), Data::Bool(true));
+        }
+        else {
+            self.registers.insert(reg.to_string(), Data::Bool(false));
+        }
+    }
+
+    fn setle(&mut self, reg: &String) {
+        if self.lesser_flag || self.equal_flag {
+            self.registers.insert(reg.to_string(), Data::Bool(true));
+        }
+        else {
+            self.registers.insert(reg.to_string(), Data::Bool(false));
         }
     }
 
