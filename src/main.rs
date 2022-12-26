@@ -171,7 +171,7 @@ impl RunTime {
             "SETLE" => self.setle(&first_arg),
             "XOR" => self.xor(&first_arg, &split[2].to_string()),
             "LOOP" => self.loop_(&first_arg),
-            "LOOPNOINC" => self.loop_no_inc(&first_arg),
+            "LOOPNODEC" => self.loop_no_dec(&first_arg),
 
             _ => println!("Unknown command: {}", split[0]),
         }
@@ -1032,7 +1032,7 @@ impl RunTime {
         }
     }
 
-    fn loop_no_inc(&mut self, label: &String) {
+    fn loop_no_dec(&mut self, label: &String) {
         match self.registers.get("L0") {
             Some(Data::Int(i)) => {
                 for _ in 0..*i {
@@ -1040,14 +1040,8 @@ impl RunTime {
                 }
             }
 
-            Some(Data::Float(i)) => {
-                for _ in 0..*i as i32 {
-                    self.jmp(label);
-                }
-            }
-
             _ => {
-                eprintln!("[loop] Attempted to loop with non-numeric value");
+                eprintln!("[loop] Attempted to loop with non-integer value");
                 process::exit(1);
             }
         }
