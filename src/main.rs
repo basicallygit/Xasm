@@ -2,6 +2,7 @@ use std::fs::read_to_string;
 use std::path::Path;
 use std::{collections::HashMap, process};
 use std::io::{self, Write};
+use std::time::Instant;
 
 #[allow(non_upper_case_globals)]
 const flush: fn() = || io::stdout().flush().unwrap();
@@ -170,6 +171,7 @@ impl RunTime {
             "SETLE" => self.setle(&first_arg),
             "XOR" => self.xor(&first_arg, &split[2].to_string()),
             "LOOP" => self.loop_(&first_arg),
+            "LOOPNOINC" => self.loop_no_inc(&first_arg),
 
             _ => println!("Unknown command: {}", split[0]),
         }
@@ -1005,6 +1007,32 @@ impl RunTime {
     }
 
     fn loop_(&mut self, label: &String) {
+        match self.registers.get("L0").unwrap().clone() {
+            Data::Int(_) => {
+                loop {
+                    let value = self.registers.get("L0").unwrap().clone();
+                    if let Data::Int(i) = value {
+                        if i <= 0 {
+                            break;
+                        }
+                        self.jmp(label);
+                        self.dec(&"L0".to_string());
+                    }
+                    else {
+                        eprintln!("[loop] Attempted to loop with non-integer value");
+                        process::exit(1);
+                    }
+                }
+            }
+
+            _ => {
+                eprintln!("[loop] Attempted to loop with non-integer value");
+                process::exit(1);
+            }
+        }
+    }
+
+    fn loop_no_inc(&mut self, label: &String) {
         match self.registers.get("L0") {
             Some(Data::Int(i)) => {
                 for _ in 0..*i {
@@ -1076,7 +1104,9 @@ fn main() {
                     continue;
                 }
                 let mut runtime = RunTime::new(read_to_string(file).unwrap());
+                let now = Instant::now();
                 runtime.run();
+                println!("Finished execution in {}ms", now.elapsed().as_micros() as f32 / 1000_f32);
             }
             "2" => {
                 let mut repl_input = String::new();
