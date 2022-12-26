@@ -60,6 +60,7 @@ struct RunTime {
     equal_flag: bool,
     greater_flag: bool,
     lesser_flag: bool,
+    zero_flag: bool,
 }
 
 impl RunTime {
@@ -73,6 +74,7 @@ impl RunTime {
             registers.insert(format!("p{}", i), Data::Null); //parameter registers pX
             registers.insert(format!("ret{}", i), Data::Null); //return registers (for functions) retX
         }
+        registers.insert(format!("l{}", 0), Data::Null); //loop register, determines how many the loop instruction should run
 
         //find all the functions
         let mut lines = code.lines().filter(|l| !l.is_empty());
@@ -108,6 +110,7 @@ impl RunTime {
             equal_flag: false,
             greater_flag: false,
             lesser_flag: false,
+            zero_flag: false,
         }
     }
 
@@ -159,6 +162,9 @@ impl RunTime {
             "jge" => self.jge(&first_arg),
             "jl" => self.jl(&first_arg),
             "jle" => self.jle(&first_arg),
+            "jz" => self.jz(&first_arg),
+            "jnz" => self.jnz(&first_arg),
+            "loop" => self.loop_(&first_arg),
 
             _ => println!("Unknown command: {}", split[0]),
         }
@@ -204,8 +210,15 @@ impl RunTime {
 
         let data = self.registers.get(reg).unwrap();
         match data {
-            Data::Int(i) => self.registers.insert(reg.to_string(), Data::Int(i + 1)),
-            Data::Float(f) => self.registers.insert(reg.to_string(), Data::Float(f + 1.0)),
+            Data::Int(i) => {
+                self.zero_flag = i + 1 == 0;
+                self.registers.insert(reg.to_string(), Data::Int(i + 1));
+
+            },
+            Data::Float(f) => {
+                self.zero_flag = f + 1.0 == 0.0;
+                self.registers.insert(reg.to_string(), Data::Float(f + 1.0));
+            },
             _ => {
                 eprintln!("[inc] Attempted to increment non-numeric register: {}", reg);
                 process::exit(1);
@@ -221,8 +234,14 @@ impl RunTime {
 
         let data = self.registers.get(reg).unwrap();
         match data {
-            Data::Int(i) => self.registers.insert(reg.to_string(), Data::Int(i - 1)),
-            Data::Float(f) => self.registers.insert(reg.to_string(), Data::Float(f - 1.0)),
+            Data::Int(i) => {
+                self.zero_flag = i - 1 == 0;
+                self.registers.insert(reg.to_string(), Data::Int(i - 1));
+            },
+            Data::Float(f) => {
+                self.zero_flag = f - 1.0 == 0.0;
+                self.registers.insert(reg.to_string(), Data::Float(f - 1.0));
+            },
             _ => {
                 eprintln!("[dec] Attempted to decrement non-numeric register: {}", reg);
                 process::exit(1);
@@ -242,8 +261,14 @@ impl RunTime {
             match reg_data {
                 Data::Int(i) => {
                     match data_data {
-                        Data::Int(j) => self.registers.insert(reg.to_string(), Data::Int(i + j)),
-                        Data::Float(j) => self.registers.insert(reg.to_string(), Data::Float(*i as f64 + j)),
+                        Data::Int(j) => {
+                            self.zero_flag = i + j == 0;
+                            self.registers.insert(reg.to_string(), Data::Int(i + j));
+                        },
+                        Data::Float(j) => {
+                            self.zero_flag = *i as f64 + j == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(*i as f64 + j));
+                        },
                         _ => {
                             eprintln!("[add] Attempted to add non-numeric data to register: {}", reg);
                             process::exit(1);
@@ -253,8 +278,14 @@ impl RunTime {
 
                 Data::Float(i) => {
                     match data_data {
-                        Data::Int(j) => self.registers.insert(reg.to_string(), Data::Float(i + *j as f64)),
-                        Data::Float(j) => self.registers.insert(reg.to_string(), Data::Float(i + j)),
+                        Data::Int(j) => {
+                            self.zero_flag = i + *j as f64 == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(i + *j as f64));
+                        },
+                        Data::Float(j) => {
+                            self.zero_flag = i + j == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(i + j));
+                        },
                         _ => {
                             eprintln!("[add] Attempted to add non-numeric data to register: {}", reg);
                             process::exit(1);
@@ -284,8 +315,14 @@ impl RunTime {
             match reg_data {
                 Data::Int(i) => {
                     match data_data {
-                        Data::Int(j) => self.registers.insert(reg.to_string(), Data::Int(i + j)),
-                        Data::Float(j) => self.registers.insert(reg.to_string(), Data::Float(*i as f64 + j)),
+                        Data::Int(j) => {
+                            self.zero_flag = j + i == 0;
+                            self.registers.insert(reg.to_string(), Data::Int(i + j));
+                        },
+                        Data::Float(j) => {
+                            self.zero_flag = *i as f64 + j == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(*i as f64 + j));
+                        },
                         _ => {
                             eprintln!("[add] Attempted to add non-numeric data to register: {}", reg);
                             process::exit(1);
@@ -295,8 +332,14 @@ impl RunTime {
 
                 Data::Float(i) => {
                     match data_data {
-                        Data::Int(j) => self.registers.insert(reg.to_string(), Data::Float(i + j as f64)),
-                        Data::Float(j) => self.registers.insert(reg.to_string(), Data::Float(i + j)),
+                        Data::Int(j) => {
+                            self.zero_flag = i + j as f64 == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(i + j as f64));
+                        },
+                        Data::Float(j) => {
+                            self.zero_flag = i + j == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(i + j));
+                        },
                         _ => {
                             eprintln!("[add] Attempted to add non-numeric data to register: {}", reg);
                             process::exit(1);
@@ -324,8 +367,14 @@ impl RunTime {
             match reg_data {
                 Data::Int(i) => {
                     match data_data {
-                        Data::Int(j) => self.registers.insert(reg.to_string(), Data::Int(i - j)),
-                        Data::Float(j) => self.registers.insert(reg.to_string(), Data::Float(*i as f64 - j)),
+                        Data::Int(j) => {
+                            self.zero_flag = i - j == 0;
+                            self.registers.insert(reg.to_string(), Data::Int(i - j));
+                        },
+                        Data::Float(j) => {
+                            self.zero_flag = *i as f64 - j == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(*i as f64 - j));
+                        },
                         _ => {
                             eprintln!("[sub] Attempted to subtract non-numeric data from register: {}", reg);
                             process::exit(1);
@@ -335,8 +384,14 @@ impl RunTime {
 
                 Data::Float(i) => {
                     match data_data {
-                        Data::Int(j) => self.registers.insert(reg.to_string(), Data::Float(i - *j as f64)),
-                        Data::Float(j) => self.registers.insert(reg.to_string(), Data::Float(i - j)),
+                        Data::Int(j) => {
+                            self.zero_flag = i - *j as f64 == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(i - *j as f64));
+                        },
+                        Data::Float(j) => {
+                            self.zero_flag = i - j == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(i - j));
+                        },
                         _ => {
                             eprintln!("[sub] Attempted to subtract non-numeric data from register: {}", reg);
                             process::exit(1);
@@ -356,8 +411,14 @@ impl RunTime {
             match reg_data {
                 Data::Int(i) => {
                     match data_data {
-                        Data::Int(j) => self.registers.insert(reg.to_string(), Data::Int(i - j)),
-                        Data::Float(j) => self.registers.insert(reg.to_string(), Data::Float(*i as f64 - j)),
+                        Data::Int(j) => {
+                            self.zero_flag = i - j == 0;
+                            self.registers.insert(reg.to_string(), Data::Int(i - j));
+                        },
+                        Data::Float(j) => {
+                            self.zero_flag = *i as f64 - j == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(*i as f64 - j));
+                        },
                         _ => {
                             eprintln!("[sub] Attempted to subtract non-numeric data from register: {}", reg);
                             process::exit(1);
@@ -367,8 +428,14 @@ impl RunTime {
 
                 Data::Float(i) => {
                     match data_data {
-                        Data::Int(j) => self.registers.insert(reg.to_string(), Data::Float(i - j as f64)),
-                        Data::Float(j) => self.registers.insert(reg.to_string(), Data::Float(i - j)),
+                        Data::Int(j) => {
+                            self.zero_flag = i - j as f64 == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(i - j as f64));
+                        },
+                        Data::Float(j) => {
+                            self.zero_flag = i - j == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(i - j));
+                        },
                         _ => {
                             eprintln!("[sub] Attempted to subtract non-numeric data from register: {}", reg);
                             process::exit(1);
@@ -402,6 +469,7 @@ impl RunTime {
                                 process::exit(1);
                             }
                             else {
+                                self.zero_flag = *i / *j == 0;
                                 self.registers.insert(reg.to_string(), Data::Float(*i as f64 / *j as f64));
                             }
                         }
@@ -411,6 +479,7 @@ impl RunTime {
                                 process::exit(1);
                             }
                             else {
+                                self.zero_flag = *i as f64 / j == 0.0;
                                 self.registers.insert(reg.to_string(), Data::Float(*i as f64 / j));
                             }
                         }
@@ -430,6 +499,7 @@ impl RunTime {
                                 process::exit(1);
                             }
                             else {
+                                self.zero_flag = i / *j as f64 == 0.0;
                                 self.registers.insert(reg.to_string(), Data::Float(i / *j as f64));
                             }
                         }
@@ -439,6 +509,7 @@ impl RunTime {
                                 process::exit(1);
                             }
                             else {
+                                self.zero_flag = i / j == 0.0;
                                 self.registers.insert(reg.to_string(), Data::Float(i / j));
                             }
                         }
@@ -468,6 +539,7 @@ impl RunTime {
                                 process::exit(1);
                             }
                             else {
+                                self.zero_flag = *i / j == 0;
                                 self.registers.insert(reg.to_string(), Data::Float(*i as f64 / j as f64));
                             }
                         }
@@ -477,6 +549,7 @@ impl RunTime {
                                 process::exit(1);
                             }
                             else {
+                                self.zero_flag = *i as f64 / j == 0.0;
                                 self.registers.insert(reg.to_string(), Data::Float(*i as f64 / j));
                             }
                         }
@@ -496,6 +569,7 @@ impl RunTime {
                                 process::exit(1);
                             }
                             else {
+                                self.zero_flag = i / j as f64 == 0.0;
                                 self.registers.insert(reg.to_string(), Data::Float(i / j as f64));
                             }
                         }
@@ -505,6 +579,7 @@ impl RunTime {
                                 process::exit(1);
                             }
                             else {
+                                self.zero_flag = i / j == 0.0;
                                 self.registers.insert(reg.to_string(), Data::Float(i / j));
                             }
                         }
@@ -535,8 +610,14 @@ impl RunTime {
             match reg_data {
                 Data::Int(i) => {
                     match data_data {
-                        Data::Int(j) => self.registers.insert(reg.to_string(), Data::Int(i * j)),
-                        Data::Float(j) => self.registers.insert(reg.to_string(), Data::Float(*i as f64 * j)),
+                        Data::Int(j) => {
+                            self.zero_flag = *i * j == 0;
+                            self.registers.insert(reg.to_string(), Data::Int(i * j));
+                        },
+                        Data::Float(j) => {
+                            self.zero_flag = *i as f64 * j == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(*i as f64 * j));
+                        },
                         _ => {
                             eprintln!("[mul] Attempted to multiply non-numeric data from register: {}", reg);
                             process::exit(1);
@@ -546,8 +627,14 @@ impl RunTime {
 
                 Data::Float(i) => {
                     match data_data {
-                        Data::Int(j) => self.registers.insert(reg.to_string(), Data::Float(i * *j as f64)),
-                        Data::Float(j) => self.registers.insert(reg.to_string(), Data::Float(i * j)),
+                        Data::Int(j) => {
+                            self.zero_flag = i * *j as f64 == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(i * *j as f64));
+                        },
+                        Data::Float(j) => {
+                            self.zero_flag = i * j == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(i * j));
+                        },
                         _ => {
                             eprintln!("[mul] Attempted to multiply non-numeric data from register: {}", reg);
                             process::exit(1);
@@ -568,8 +655,14 @@ impl RunTime {
             match reg_data {
                 Data::Int(i) => {
                     match data_data {
-                        Data::Int(j) => self.registers.insert(reg.to_string(), Data::Int(i * j)),
-                        Data::Float(j) => self.registers.insert(reg.to_string(), Data::Float(*i as f64 * j)),
+                        Data::Int(j) => {
+                            self.zero_flag = *i * j == 0;
+                            self.registers.insert(reg.to_string(), Data::Int(i * j));
+                        },
+                        Data::Float(j) => {
+                            self.zero_flag = *i as f64 * j == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(*i as f64 * j));
+                        },
                         _ => {
                             eprintln!("[mul] Attempted to multiply non-numeric data from register: {}", reg);
                             process::exit(1);
@@ -579,8 +672,14 @@ impl RunTime {
 
                 Data::Float(i) => {
                     match data_data {
-                        Data::Int(j) => self.registers.insert(reg.to_string(), Data::Float(i * j as f64)),
-                        Data::Float(j) => self.registers.insert(reg.to_string(), Data::Float(i * j)),
+                        Data::Int(j) => {
+                            self.zero_flag = i * j as f64 == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(i * j as f64));
+                        },
+                        Data::Float(j) => {
+                            self.zero_flag = i * j == 0.0;
+                            self.registers.insert(reg.to_string(), Data::Float(i * j));
+                        },
                         _ => {
                             eprintln!("[mul] Attempted to multiply non-numeric data from register: {}", reg);
                             process::exit(1);
@@ -792,6 +891,39 @@ impl RunTime {
         }
     }
 
+    fn jz(&mut self, label: &String) {
+        if self.zero_flag {
+            self.jmp(label);
+        }
+    }
+
+    fn jnz(&mut self, label: &String) {
+        if !self.zero_flag {
+            self.jmp(label);
+        }
+    }
+
+    fn loop_(&mut self, label: &String) {
+        match self.registers.get("l0") {
+            Some(Data::Int(i)) => {
+                for _ in 0..*i {
+                    self.jmp(label);
+                }
+            }
+
+            Some(Data::Float(i)) => {
+                for _ in 0..*i as i32 {
+                    self.jmp(label);
+                }
+            }
+
+            _ => {
+                eprintln!("[loop] Attempted to loop with non-numeric value");
+                process::exit(1);
+            }
+        }
+    }
+
     fn debug(&self) {
         println!("{:#?}", self);
     }
@@ -849,23 +981,21 @@ fn main() {
                 let mut repl_input = String::new();
                 let mut runtime = RunTime::new(String::new());
 
-                while repl_input.trim() != "exit" {
+                loop {
                     repl_input.clear();
                     print!("REPL> ");
                     flush();
                     io::stdin().read_line(&mut repl_input).unwrap();
-                    if repl_input.trim() == "clear" {
-                        print!("\x1B[2J\x1B[1;1H");
-                        flush();
-                    }
-                    else if repl_input.trim() == "reset" {
-                        runtime = RunTime::new(String::new());
-                    }
-                    else if repl_input.trim().is_empty() {
-                        continue;
-                    }
-                    else {
-                        runtime.execute_line(&repl_input.trim());
+                    match repl_input.trim() {
+                        "exit" => {break;}
+                        "clear" => {
+                            print!("\x1B[2J\x1B[1;1H");
+                            flush();
+                        }
+                        "reset" => {runtime = RunTime::new(String::new());}
+                        _ => {
+                            runtime.execute_line(repl_input.trim());
+                        }
                     }
                 }
             }
