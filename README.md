@@ -20,7 +20,7 @@ To get around this, use the LOOP instruction for looping.
 |---|---|
 |push <kbd>register</kbd>|Pushes <kbd>register</kbd> onto the stack|
 |pop <kbd>register</kbd>|Pops the top value off the stack and into <kbd>register</kbd>|
-|mv <kbd>register1</kbd> <kbd>value/register2</kbd>|Copies the value of <kbd>value/register2</kbd> into <kbd>register1</kbd>|
+|mov <kbd>register1</kbd> <kbd>value/register2</kbd>|Copies the value of <kbd>value/register2</kbd> into <kbd>register1</kbd>|
 |inc <kbd>register</kbd>|Increments the value in <kbd>register</kbd>|
 |dec <kbd>register</kbd>|Decrements the value in <kbd>register</kbd>|
 |add <kbd>register1</kbd> <kbd>value/register2</kbd>|Adds <kbd>value/register2</kbd> to <kbd>register</kbd>|
