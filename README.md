@@ -13,7 +13,7 @@ To get around this, use the LOOP instruction for looping.
 |r<kbd>0-12</kbd>|General purpose registers|
 |p<kbd>0-12</kbd>|Paramater registers, for passing arguments to functions/syscalls|
 |ret<kbd>0-12</kbd>|Return registers, for returning values from functions/syscalls|
-|l<kbd>0</kbd>|Loop register, defines how many times to jmp to a label|
+|L<kbd>0</kbd>|Loop register, defines how many times to jmp to a label|
 
 ## Instructions
 |Instruction|Usage|
@@ -34,4 +34,4 @@ To get around this, use the LOOP instruction for looping.
 |jz <kbd>label</kbd>|Calls label only if <kbd>zero_flag</kbd> is true|
 |jnz <kbd>label</kbd>|Calls label only if <kbd>zero_flag</kbd> is false|
 |jg, jge, jl, jle <kbd>label</kbd>|Jump greater, Jump greater than or equal, Jump less than, Jump less than or equal|
-|loop <kbd>label</kbd>|Calls <kbd>label</kbd> <kbd>l0</kbd> times|
+|loop <kbd>label</kbd>|Calls <kbd>label</kbd> <kbd>L0</kbd> times|
