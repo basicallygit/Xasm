@@ -1,0 +1,26 @@
+fun empty
+  MOV P0, "You input was empty."
+  JMP printline
+end
+
+fun not_empty
+  PUSH P0
+  MOV P0, "Not empty. You input: "
+  JMP print
+  POP P0
+  JMP printline
+end
+
+fun is_empty
+  CMP P0, ""
+  JE empty
+  JNE not_empty
+end
+
+fun main
+  MOV P0, "Enter something: "
+  JMP print
+  JMP input
+  MOV P0, RET0
+  JMP is_empty
+end

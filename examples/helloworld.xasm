@@ -1,0 +1,4 @@
+fun main
+  MOV P0, "Hello, World!"
+  JMP printline
+end

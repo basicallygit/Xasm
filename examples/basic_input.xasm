@@ -1,0 +1,9 @@
+fun main
+  MOV P0, "Enter something: "
+  JMP print
+  JMP input
+  MOV P0, "You input: "
+  JMP print
+  MOV P0, RET0
+  JMP printline
+end
