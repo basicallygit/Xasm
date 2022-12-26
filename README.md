@@ -35,3 +35,12 @@ To get around this, use the LOOP instruction for looping.
 |JNZ <kbd>label</kbd>|Calls label only if <kbd>zero_flag</kbd> is false|
 |JG, JGE, JL, JLE <kbd>label</kbd>|Jump greater, Jump greater than or equal, Jump less than, Jump less than or equal|
 |LOOP <kbd>label</kbd>|Calls <kbd>label</kbd> <kbd>L0</kbd> times|
+
+## Builtin functions
+|Function|Usage|
+|---|---|
+|print|prints <kbd>P0</kbd>|
+|printline|prints <kbd>P0</kbd> with a newline|
+|input|Fetches user input and places it in <kbd>RET0</kbd>|
+|debug|Prints out the entire program layout - functions, register states etc|
+|exit|Exits the program with exit code <kbd>P0</kbd>
