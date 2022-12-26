@@ -27,6 +27,7 @@ To get around this, use the LOOP instruction for looping.
 |SUB <kbd>register1</kbd> <kbd>value/register2</kbd>|Subtracts <kbd>value/register2</kbd> from <kbd>register</kbd>|
 |MUL <kbd>register1</kbd> <kbd>value/register2</kbd>|Multiplies <kbd>register1</kbd> by <kbd>value/register2</kbd>|
 |DIV <kbd>register1</kbd> <kbd>value/register2</kbd>|Divides <kbd>register1</kbd> by <kbd>value/register2</kbd>|
+|XOR <kbd>register1</kbd> <kbd>value/register2</kbd>|Performs an XOR on <kbd>register1</kbd> with <kbd>value/register2</kbd>
 |CMP <kbd>register1</kbd> <kbd>value/register2</kbd>|Compares <kbd>value/register2</kbd> to <kbd>register</kbd> and sets <kbd>equal_flag, lesser_flag & greater_flag</kbd> accordingly|
 |JMP <kbd>label</kbd>|Calls a builtin or user defined function|
 |JE <kbd>label</kbd>|Calls label only if <kbd>equal_flag</kbd> is true|
@@ -34,6 +35,7 @@ To get around this, use the LOOP instruction for looping.
 |JZ <kbd>label</kbd>|Calls label only if <kbd>zero_flag</kbd> is true|
 |JNZ <kbd>label</kbd>|Calls label only if <kbd>zero_flag</kbd> is false|
 |JG, JGE, JL, JLE <kbd>label</kbd>|Jump greater, Jump greater than or equal, Jump less than, Jump less than or equal|
+|SETG, SETGE, SETL, SETLE <kbd>register</kbd>|Sets <kbd>register</kbd> to a boolean based on the lesser, greater and equal flags|
 |LOOP <kbd>label</kbd>|Calls <kbd>label</kbd> <kbd>L0</kbd> times|
 
 ## Builtin functions
