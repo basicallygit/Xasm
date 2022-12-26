@@ -3,7 +3,7 @@ A dumbed-down version of assembly with REPL support
 
 # Issues
 Due to jmp being its own function that waits for execution to finish, recursive loops will eventually result in a stack overflow.<br>
-To get around this, use the LOOP instruction for looping.
+To get around this, use the LOOP and LOOPNOINC instructions for looping.
 
 ## Usage
 
@@ -36,7 +36,8 @@ To get around this, use the LOOP instruction for looping.
 |JNZ <kbd>label</kbd>|Calls label only if <kbd>zero_flag</kbd> is false|
 |JG, JGE, JL, JLE <kbd>label</kbd>|Jump greater, Jump greater than or equal, Jump less than, Jump less than or equal|
 |SETG, SETGE, SETL, SETLE <kbd>register</kbd>|Sets <kbd>register</kbd> to a boolean based on the lesser, greater and equal flags|
-|LOOP <kbd>label</kbd>|Calls <kbd>label</kbd> <kbd>L0</kbd> times|
+|LOOP <kbd>label</kbd>|Calls <kbd>label</kbd> until <kbd>L0</kbd> is 0, decrementing it each loop|
+|LOOPNODEC <kbd>label</kbd>|Calls <kbd>label</kbd> <kbd>L0</kbd> times without decrementing it, much faster than LOOP|
 
 ## Builtin functions
 |Function|Usage|
