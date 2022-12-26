@@ -70,11 +70,11 @@ impl RunTime {
 
         //initialize registers
         for i in 0..=12 {
-            registers.insert(format!("r{}", i), Data::Null); //general purpose registers rX
-            registers.insert(format!("p{}", i), Data::Null); //parameter registers pX
-            registers.insert(format!("ret{}", i), Data::Null); //return registers (for functions) retX
+            registers.insert(format!("R{}", i), Data::Null); //general purpose registers rX
+            registers.insert(format!("P{}", i), Data::Null); //parameter registers pX
+            registers.insert(format!("RET{}", i), Data::Null); //return registers (for functions) retX
         }
-        registers.insert(format!("l{}", 0), Data::Null); //loop register, determines how many the loop instruction should run
+        registers.insert(format!("L{}", 0), Data::Null); //loop register, determines how many the loop instruction should run
 
         //find all the functions
         let mut lines = code.lines().filter(|l| !l.is_empty());
@@ -144,27 +144,27 @@ impl RunTime {
         let first_arg = split[1].to_string().replace(',', "");
 
 
-        match split[0].trim() {
-            "mv" => self.mov(first_arg, split[2].to_string()),
-            "push" => self.push(first_arg),
-            "pop" => self.pop(first_arg),
-            "inc" => self.inc(&first_arg),
-            "dec" => self.dec(&first_arg),
-            "sub" => self.sub(&first_arg, &split[2].to_string()),
-            "add" => self.add(&first_arg, &split[2].to_string()),
-            "div" => self.div(&first_arg, &split[2].to_string()),
-            "mul" => self.mul(&first_arg, &split[2].to_string()),
-            "cmp" => self.cmp(&first_arg, &split[2].to_string()),
-            "jmp" => self.jmp(&first_arg),
-            "je" => self.je(&first_arg),
-            "jne" => self.jne(&first_arg),
-            "jg" => self.jg(&first_arg),
-            "jge" => self.jge(&first_arg),
-            "jl" => self.jl(&first_arg),
-            "jle" => self.jle(&first_arg),
-            "jz" => self.jz(&first_arg),
-            "jnz" => self.jnz(&first_arg),
-            "loop" => self.loop_(&first_arg),
+        match split[0].trim().to_uppercase().as_str() {
+            "MOV" => self.mov(first_arg, split[2].to_string()),
+            "PUSH" => self.push(first_arg),
+            "POP" => self.pop(first_arg),
+            "INC" => self.inc(&first_arg),
+            "DEC" => self.dec(&first_arg),
+            "SUB" => self.sub(&first_arg, &split[2].to_string()),
+            "ADD" => self.add(&first_arg, &split[2].to_string()),
+            "DIV" => self.div(&first_arg, &split[2].to_string()),
+            "MUL" => self.mul(&first_arg, &split[2].to_string()),
+            "CMP" => self.cmp(&first_arg, &split[2].to_string()),
+            "JMP" => self.jmp(&first_arg),
+            "JE" => self.je(&first_arg),
+            "JNE" => self.jne(&first_arg),
+            "JG" => self.jg(&first_arg),
+            "JGE" => self.jge(&first_arg),
+            "JL" => self.jl(&first_arg),
+            "JLE" => self.jle(&first_arg),
+            "JZ" => self.jz(&first_arg),
+            "JNZ" => self.jnz(&first_arg),
+            "LOOP" => self.loop_(&first_arg),
 
             _ => println!("Unknown command: {}", split[0]),
         }
@@ -184,8 +184,13 @@ impl RunTime {
             process::exit(1);
         }
 
-        let data = self.stack.pop().unwrap();
-        self.registers.insert(out_reg, data);
+        if let Some(data) = self.stack.pop() {
+            self.registers.insert(out_reg, data);
+        }
+        else {
+            eprintln!("[pop] Attempted to pop from empty stack");
+            process::exit(1);
+        }
     }
 
     fn mov(&mut self, reg: String, data: String) {
@@ -904,7 +909,7 @@ impl RunTime {
     }
 
     fn loop_(&mut self, label: &String) {
-        match self.registers.get("l0") {
+        match self.registers.get("L0") {
             Some(Data::Int(i)) => {
                 for _ in 0..*i {
                     self.jmp(label);
@@ -929,22 +934,22 @@ impl RunTime {
     }
 
     fn print(&self) {
-        print!("{}", self.registers.get("p0").unwrap().to_string());
+        print!("{}", self.registers.get("P0").unwrap().to_string());
         flush();
     }
 
     fn printline(&self) {
-        println!("{}", self.registers.get("p0").unwrap().to_string());
+        println!("{}", self.registers.get("P0").unwrap().to_string());
     }
 
     fn input(&mut self) {
         let mut input = String::new();
         io::stdin().read_line(&mut input).unwrap();
-        self.registers.insert("ret0".to_string(), Data::String(input.trim().to_string()));
+        self.registers.insert("RET0".to_string(), Data::String(input.trim().to_string()));
     }
 
     fn exit(&self) {
-        println!("Process exited with code '{}'", self.registers.get("p0").unwrap().to_string());
+        println!("Process exited with code '{}'", self.registers.get("P0").unwrap().to_string());
         process::exit(0);
     }
 
